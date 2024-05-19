@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:5.7
+    platform: linux/x86_64
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: users
+    ports:
+      - "3306:3306"
+
+  name-service:
+    build:
+      context: ./nameService
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: mysql+pymysql://root:password@db/users
+
+  birthday-service:
+    build:
+      context: ./birthdayService
+    ports:
+      - "8080:8080"
+
+  graphql-api:
+    build:
+      context: ./graphqlApi
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+      - name-service
+      - birthday-service
+    environment:
+      DATABASE_URL: mysql+pymysql://root:password@db/users
+

@@ -1,40 +1,55 @@
-version: '3.8'
-
 services:
-  db:
+  mysql:
     image: mysql:5.7
-    platform: linux/x86_64
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: users
     ports:
       - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  mongo:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_DATABASE: birthdaydb
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
 
   name-service:
-    build:
-      context: ./nameService
+    build: ./nameService
     ports:
-      - "5000:5000"
+      - "8000:8000"
     depends_on:
-      - db
+      - mysql
     environment:
-      DATABASE_URL: mysql+pymysql://root:password@db/users
+      DATABASE_URL: mysql+pymysql://root:password@mysql/users
 
   birthday-service:
-    build:
-      context: ./birthdayService
+    build: ./birthdayService
     ports:
       - "8080:8080"
+    depends_on:
+      - mongo
+    environment:
+      MONGO_URL: mongodb://mongo:27017/birthdaydb
 
   graphql-api:
-    build:
-      context: ./graphqlApi
+    build: ./graphql-api
     ports:
       - "4000:4000"
     depends_on:
-      - db
       - name-service
       - birthday-service
     environment:
-      DATABASE_URL: mysql+pymysql://root:password@db/users
+      NAME_SERVICE_URL: http://name-service:8000
+      BIRTHDAY_SERVICE_URL: http://birthday-service:8080
 
+volumes:
+  db_data:
+    driver: local
+  mongo-data:
+    driver: local

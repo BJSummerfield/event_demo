@@ -1,0 +1,9 @@
+[submodule "microservices-demo-api-gateway"]
+	path = microservices-demo-api-gateway
+	url = git@github.com:BJSummerfield/microservices-demo-api-gateway.git
+[submodule "microservices-demo-birthday-service"]
+	path = microservices-demo-birthday-service
+	url = git@github.com:BJSummerfield/microservices-demo-birthday-service.git
+[submodule "microservices-demo-name-service"]
+	path = microservices-demo-name-service
+	url = git@github.com:BJSummerfield/microservices-demo-name-service.git

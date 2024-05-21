@@ -1,6 +1,7 @@
 services:
-  mysql:
+  microservices-demo-mysql:
     image: mysql:5.7
+    platform: linux/x86_64
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: users
@@ -8,9 +9,9 @@ services:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
-      - ./nameService/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./microservices-demo-name-service/init.sql:/docker-entrypoint-initdb.d/init.sql
 
-  mongo:
+  microservices-demo-mongo:
     image: mongo:latest
     environment:
       MONGO_INITDB_DATABASE: birthdaydb
@@ -19,37 +20,45 @@ services:
     ports:
       - "27017:27017"
 
-  name-service:
-    build: ./nameService
+  microservices-demo-name-service:
+    build: ./microservices-demo-name-service
     ports:
       - "8000:8000"
     depends_on:
-      - mysql
+      - microservices-demo-mysql
     environment:
-      DATABASE_URL: mysql+pymysql://root:password@mysql/users
+      DATABASE_URL: mysql+pymysql://root:password@microservices-demo-mysql/users
 
-  birthday-service:
-    build: ./birthdayService
+  microservices-demo-birthday-service:
+    build: ./microservices-demo-birthday-service
     ports:
       - "8080:8080"
     depends_on:
-      - mongo
+      - microservices-demo-mongo
     environment:
-      MONGO_URL: mongodb://mongo:27017/birthdaydb
+      MONGO_URL: mongodb://microservices-demo-mongo:27017/birthdaydb
 
-  graphql-api:
-    build: ./graphql-api
+  microservices-demo-api-gateway:
+    build: ./microservices-demo-api-gateway
     ports:
       - "4000:4000"
     depends_on:
-      - name-service
-      - birthday-service
+      - microservices-demo-name-service
+      - microservices-demo-birthday-service
     environment:
-      NAME_SERVICE_URL: http://name-service:8000
-      BIRTHDAY_SERVICE_URL: http://birthday-service:8080
+      NAME_SERVICE_URL: http://microservices-demo-name-service:8000
+      BIRTHDAY_SERVICE_URL: http://microservices-demo-birthday-service:8080
+
+  microservices-demo-frontend:
+    build: ./microservices-demo-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - microservices-demo-api-gateway
 
 volumes:
   db_data:
     driver: local
   mongo-data:
     driver: local
+

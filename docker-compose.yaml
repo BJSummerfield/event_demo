@@ -27,7 +27,12 @@ services:
     depends_on:
       - microservices-demo-mysql
     environment:
-      DATABASE_URL: mysql+pymysql://root:password@microservices-demo-mysql/users
+      DATABASE_URL: mysql+pymysql://microservices-demo-mysql:3306/users
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   microservices-demo-birthday-service:
     build: ./microservices-demo-birthday-service
@@ -61,4 +66,3 @@ volumes:
     driver: local
   mongo-data:
     driver: local
-

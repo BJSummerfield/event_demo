@@ -1,33 +1,34 @@
 services:
-  microservices-demo-mysql:
+  microservices-demo-name-mysql:
     image: mysql:5.7
     platform: linux/x86_64
     environment:
       MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: users
-    ports:
-      - "3306:3306"
+      MYSQL_DATABASE: names
     volumes:
       - db_data:/var/lib/mysql
       - ./microservices-demo-name-service/init.sql:/docker-entrypoint-initdb.d/init.sql
 
-  microservices-demo-mongo:
+  microservices-demo-birthdays-mongo:
     image: mongo:latest
     environment:
       MONGO_INITDB_DATABASE: birthdaydb
     volumes:
       - mongo-data:/data/db
-    ports:
-      - "27017:27017"
+
+  microservices-demo-users-mongo:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_DATABASE: userdb
+    volumes:
+      - userdb-data:/data/db
 
   microservices-demo-name-service:
     build: ./microservices-demo-name-service
-    ports:
-      - "8000:8000"
     depends_on:
-      - microservices-demo-mysql
+      - microservices-demo-name-mysql
     environment:
-      DATABASE_URL: mysql+pymysql://microservices-demo-mysql:3306/users
+      DATABASE_URL: mysql+pymysql://root:password@microservices-demo-name-mysql:3306/names
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/ || exit 1"]
       interval: 30s
@@ -36,12 +37,19 @@ services:
 
   microservices-demo-birthday-service:
     build: ./microservices-demo-birthday-service
-    ports:
-      - "8080:8080"
     depends_on:
-      - microservices-demo-mongo
+      - microservices-demo-birthdays-mongo
     environment:
-      MONGO_URL: mongodb://microservices-demo-mongo:27017/birthdaydb
+      MONGO_URL: mongodb://microservices-demo-birthdays-mongo:27017/birthdaydb
+
+  microservices-demo-user-management-service:
+    build: ./microservices-demo-user-management-service
+    depends_on:
+      - rabbitmq
+      - microservices-demo-users-mongo
+    environment:
+      MONGO_URL: mongodb://microservices-demo-users-mongo:27017/userdb
+      RABBITMQ_URL: amqp://rabbitmq:5672/
 
   microservices-demo-api-gateway:
     build: ./microservices-demo-api-gateway
@@ -50,9 +58,11 @@ services:
     depends_on:
       - microservices-demo-name-service
       - microservices-demo-birthday-service
+      - microservices-demo-user-management-service
     environment:
       NAME_SERVICE_URL: http://microservices-demo-name-service:8000
       BIRTHDAY_SERVICE_URL: http://microservices-demo-birthday-service:8080
+      USER_MANAGEMENT_SERVICE_URL: http://microservices-demo-user-management-service:8001
 
   microservices-demo-frontend:
     build: ./microservices-demo-frontend
@@ -61,8 +71,16 @@ services:
     depends_on:
       - microservices-demo-api-gateway
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    # ports:
+    #   - "5672:5672"
+    #   - "15672:15672"
+
 volumes:
   db_data:
     driver: local
   mongo-data:
+    driver: local
+  userdb-data:
     driver: local

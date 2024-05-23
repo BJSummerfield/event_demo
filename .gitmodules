@@ -10,3 +10,6 @@
 [submodule "microservices-demo-frontend"]
 	path = microservices-demo-frontend
 	url = git@github.com:BJSummerfield/microservices-demo-frontend.git
+[submodule "microservices-demo-user-management-service"]
+	path = microservices-demo-user-management-service
+	url = git@github.com:BJSummerfield/microservices-demo-user-management-service.git

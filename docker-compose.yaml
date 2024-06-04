@@ -37,9 +37,11 @@ services:
   microservices-demo-birthday-service:
     build: ./microservices-demo-birthday-service
     depends_on:
+      - rabbitmq
       - microservices-demo-birthdays-mongo
     environment:
       MONGO_URL: mongodb://microservices-demo-birthdays-mongo:27017/birthdaydb
+      RABBITMQ_URL: amqp://rabbitmq:5672/
 
   microservices-demo-user-management-service:
     build: ./microservices-demo-user-management-service
@@ -55,6 +57,7 @@ services:
     ports:
       - "4000:4000"
     depends_on:
+      - rabbitmq
       - microservices-demo-name-service
       - microservices-demo-birthday-service
       - microservices-demo-user-management-service

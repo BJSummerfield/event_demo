@@ -13,3 +13,6 @@
 [submodule "microservices-demo-user-management-service"]
 	path = microservices-demo-user-management-service
 	url = git@github.com:BJSummerfield/microservices-demo-user-management-service.git
+[submodule "microservices-demo-event-emitter"]
+	path = microservices-demo-event-emitter
+	url = git@github.com:BJSummerfield/microservices-demo-event-emitter.git
